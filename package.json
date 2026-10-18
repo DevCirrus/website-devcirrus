@@ -2,13 +2,16 @@
   "name": "devcirrus-website",
   "version": "1.0.0",
   "private": true,
-  "engines": {"node": ">=24.19.0 <25"},
+  "engines": {
+    "node": ">=24.19.0 <25"
+  },
   "scripts": {
     "check": "html-validate 'public/**/*.html' && node scripts/check-site.mjs",
     "serve": "python3 -m http.server 8080 --bind 127.0.0.1 --directory public"
   },
   "devDependencies": {
     "firebase-tools": "15.34.0",
-    "html-validate": "11.16.4"
+    "html-validate": "11.16.4",
+    "yaml": "2.9.1"
   }
 }

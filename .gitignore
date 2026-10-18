@@ -17,3 +17,5 @@ reports/
 *.backup
 
 .firebaserc
+__pycache__/
+*.pyc

@@ -1,0 +1,91 @@
+name: Reviewed infrastructure
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: website-infrastructure
+  cancel-in-progress: false
+jobs:
+  checks:
+    if: github.ref == 'refs/heads/main' && vars.INFRASTRUCTURE_ENABLED == 'true'
+    uses: ./.github/workflows/checks.yml
+  plan:
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: infrastructure-plan
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SITE_STATE_BUCKET: ${{ vars.SITE_STATE_BUCKET }}
+      SITE_INPUTS_GENERATION: ${{ vars.SITE_INPUTS_GENERATION }}
+      SITE_PROJECT_ID: ${{ vars.SITE_PROJECT_ID }}
+      SITE_ID: ${{ vars.SITE_ID }}
+    outputs:
+      changes: ${{ steps.plan.outputs.changes }}
+      plan_generation: ${{ steps.plan.outputs.plan_generation }}
+      plan_sha256: ${{ steps.plan.outputs.plan_sha256 }}
+      manifest_generation: ${{ steps.plan.outputs.manifest_generation }}
+      manifest_sha256: ${{ steps.plan.outputs.manifest_sha256 }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: 1.16.6
+          terraform_wrapper: false
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+        with:
+          version: '>= 541.0.0'
+      - name: Verify protected environments and current main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/check-environment.py infrastructure
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.WIF_PLAN_PROVIDER }}
+          service_account: ${{ vars.PLAN_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+      - name: Save immutable plan and manifest in private GCS
+        id: plan
+        run: python3 scripts/infra-run.py plan
+  apply:
+    needs: plan
+    if: needs.plan.outputs.changes == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: infrastructure
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SITE_STATE_BUCKET: ${{ vars.SITE_STATE_BUCKET }}
+      EXPECTED_PLAN_GENERATION: ${{ needs.plan.outputs.plan_generation }}
+      EXPECTED_PLAN_SHA256: ${{ needs.plan.outputs.plan_sha256 }}
+      EXPECTED_MANIFEST_GENERATION: ${{ needs.plan.outputs.manifest_generation }}
+      EXPECTED_MANIFEST_SHA256: ${{ needs.plan.outputs.manifest_sha256 }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: 1.16.6
+          terraform_wrapper: false
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3
+        with:
+          version: '>= 541.0.0'
+      - name: Recheck gate and main after approval
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/check-environment.py infrastructure
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.WIF_APPLY_PROVIDER }}
+          service_account: ${{ vars.APPLY_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+      - name: Apply precisely the private reviewed generation and digest
+        run: python3 scripts/infra-run.py apply
