@@ -1,0 +1,51 @@
+name: Deploy website
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: website-production
+  cancel-in-progress: false
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+  deploy:
+    needs: checks
+    if: vars.WEBSITE_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SITE_PROJECT_ID: ${{ vars.SITE_PROJECT_ID }}
+      SITE_ID: ${{ vars.SITE_ID }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version-file: .node-version
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run check && node scripts/hosting-target.mjs
+      - name: Verify main and production environment before authentication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/check-environment.py production
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.WIF_CONTENT_PROVIDER }}
+          service_account: ${{ vars.CONTENT_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+      - name: Publish only the selected Hosting target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/check-environment.py --head-only
+          npx --no-install firebase deploy --only hosting:website --project "$SITE_PROJECT_ID" --non-interactive --message "$GITHUB_SHA" --json > "$RUNNER_TEMP/deploy.json"
+          node scripts/release-summary.mjs
+          curl --fail --silent --show-error --retry 3 --retry-delay 5 "https://${SITE_ID}.web.app/" -o "$RUNNER_TEMP/published.html"
+          python3 -c 'from pathlib import Path; import os; assert Path(os.environ["RUNNER_TEMP"]+"/published.html").read_bytes() == Path("public/index.html").read_bytes(), "Published HTML differs from this commit"'
