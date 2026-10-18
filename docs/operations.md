@@ -127,3 +127,49 @@ and approve the new plan. Re-running an old apply job is not a supported recover
 GCS generation mismatch, a newer state serial or a new commit requires fresh
 review. Serialize the complete workflow and keep `-lock-timeout=5m`; do not use
 `-lock=false`. Do not print a private error log to diagnose a public CI failure.
+
+## Launch acceptance and evidence (F6)
+
+Prepared source code is not a completed infrastructure phase or a published
+website. The following require real execution evidence before being checked:
+
+- [ ] Dedicated project ID/parent/billing, inventory/imports and IAM scope
+  reviewed; explicit creation/billing/resource plan, costs and rollback approved.
+- [ ] Bootstrap applied, state migrated and recovery verified; API/IAM permissions
+  and OIDC denial cases checked against real GCP, not just mocks.
+- [ ] Selected Hosting site/domains and Cloud DNS applied from approved plans.
+- [ ] [DNS cutover record](dns-cutover.md) complete; mail/verifications preserved;
+  both authoritative zones compared; current NS/DS chain validated.
+- [ ] PR review and authorized merge → checks → automatic release of that SHA
+  demonstrated, with run URL, Hosting release/version and previous good release.
+- [ ] `python3 scripts/acceptance.py` passes against production with normal TLS
+  verification; record timestamp, statuses, both valid certificates and observed
+  path/query redirect behaviour. No bypass of certificate validation is allowed.
+- [ ] Responsive desktop/mobile layout, zoom and language/semantic accessibility
+  reviewed. Local rendering evidence does not establish production HTTPS.
+- [ ] Content rollback demonstrated safely, latest ten good releases retained,
+  storage/versions monitored, and observed incremental costs reconciled with the
+  approved estimate and account quotas. No automatic billing shutdown.
+
+The acceptance helper makes read-only HTTP requests; run only once production is
+expected to be ready. It checks root content, www 301, HTTP upgrades, convergence
+and path/query behaviour. It does not replace a complete DNS inventory or mail
+verification. Capture certificate expiry and DNSSEC evidence separately, using
+trusted resolver/authority queries and normal `openssl` hostname verification.
+No production acceptance has been performed by the preparation commits.
+
+### Rollback
+
+For content, prefer a reviewed revert PR and authorized merge, so the normal
+workflow publishes the last good source. In an incident, an explicitly approved
+Firebase console rollback to a retained release is possible; record its version
+and reconcile Git immediately with a PR. A fresh automated deployment otherwise
+supersedes that rollback. Retain at least ten known good releases and review
+retention/storage to avoid unlimited accumulation.
+
+For infrastructure, prepare a new reviewed plan restoring the approved settings.
+Do not use `terraform destroy` as rollback or disable billing to fix the website.
+For DNS, restore the exact old RRsets/NS from the private snapshot, coordinating
+DS with the active zone's keys. Caches prevent instantaneous reversal; retain the
+old provider through the migration and rollback window. Do not delete the old
+zone, Hosting domains, project or unrelated resources to diagnose TLS problems.
