@@ -61,3 +61,15 @@ class SecurityBoundaries(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class DNSPreservation(unittest.TestCase):
+    def test_mail_omission_and_txt_replacement_are_visible(self):
+        dns = module('dns_compare', 'compare-dns.py')
+        old = dns.normalize([
+            {'name': 'devcirrus.com.', 'type': 'MX', 'ttl': 300, 'rrdatas': ['10 mail.example.invalid.']},
+            {'name': 'devcirrus.com.', 'type': 'TXT', 'ttl': 300, 'rrdatas': ['"v=spf1 -all"', '"old-verification"']},
+        ])
+        new = dns.normalize([
+            {'name': 'devcirrus.com.', 'type': 'TXT', 'ttl': 300, 'rrdatas': ['"new-challenge"']},
+        ])
+        self.assertEqual(dns.differences(old, new), {'devcirrus.com.|MX', 'devcirrus.com.|TXT'})
