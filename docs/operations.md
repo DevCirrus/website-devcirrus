@@ -133,8 +133,8 @@ review. Serialize the complete workflow and keep `-lock-timeout=5m`; do not use
 Prepared source code is not a completed infrastructure phase or a published
 website. The following require real execution evidence before being checked:
 
-- [ ] Inventory/imports and shared-project IAM scope reviewed; explicit resource
-  plan/cost/rollback approval recorded; existing sites and billing preserved.
+- [ ] Dedicated project ID/parent/billing, inventory/imports and IAM scope
+  reviewed; explicit creation/billing/resource plan, costs and rollback approved.
 - [ ] Bootstrap applied, state migrated and recovery verified; API/IAM permissions
   and OIDC denial cases checked against real GCP, not just mocks.
 - [ ] Selected Hosting site/domains and Cloud DNS applied from approved plans.
