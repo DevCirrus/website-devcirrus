@@ -1,0 +1,17 @@
+node_modules/
+.firebase/
+firebase-debug*.log
+.terraform/
+*.tfstate*
+*.tfplan
+*.tfvars
+*.tfvars.json
+*.tfbackend
+!*.example.tfvars
+!*.example.tfbackend
+crash.log
+gha-creds-*.json
+.env*
+private/
+reports/
+*.backup
