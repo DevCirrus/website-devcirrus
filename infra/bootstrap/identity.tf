@@ -19,19 +19,19 @@ locals {
 }
 resource "google_service_account" "pipeline" {
   for_each     = local.pipelines
-  project      = data.google_project.website.project_id
+  project      = google_project.website.project_id
   account_id   = each.value.account
   display_name = "DevCirrus ${each.key} pipeline"
   depends_on   = [google_project_service.api]
 }
 resource "google_project_iam_member" "pipeline" {
   for_each = local.project_roles
-  project  = data.google_project.website.project_id
+  project  = google_project.website.project_id
   role     = each.value.role
   member   = "serviceAccount:${google_service_account.pipeline[each.value.pipeline].email}"
 }
 resource "google_project_iam_custom_role" "project_read" {
-  project     = data.google_project.website.project_id
+  project     = google_project.website.project_id
   role_id     = "websiteProjectRead"
   title       = "Website project metadata read"
   permissions = ["resourcemanager.projects.get"]
@@ -39,7 +39,7 @@ resource "google_project_iam_custom_role" "project_read" {
 }
 resource "google_project_iam_member" "project_read" {
   for_each = toset(["plan", "apply"])
-  project  = data.google_project.website.project_id
+  project  = google_project.website.project_id
   role     = google_project_iam_custom_role.project_read.name
   member   = "serviceAccount:${google_service_account.pipeline[each.key].email}"
 }
@@ -50,14 +50,14 @@ resource "google_storage_bucket_iam_member" "site_state" {
   member   = "serviceAccount:${google_service_account.pipeline[each.key].email}"
 }
 resource "google_iam_workload_identity_pool" "github" {
-  project                   = data.google_project.website.project_id
+  project                   = google_project.website.project_id
   workload_identity_pool_id = "website-github"
   display_name              = "DevCirrus website GitHub"
   depends_on                = [google_project_service.api]
 }
 resource "google_iam_workload_identity_pool_provider" "pipeline" {
   for_each                           = local.pipelines
-  project                            = data.google_project.website.project_id
+  project                            = google_project.website.project_id
   workload_identity_pool_id          = google_iam_workload_identity_pool.github.workload_identity_pool_id
   workload_identity_pool_provider_id = each.key
   attribute_mapping = {
