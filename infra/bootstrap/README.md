@@ -1,13 +1,19 @@
 # Human-operated bootstrap
 
 Run only after the private inventory, current costs and a concrete plan have been
-approved. This root reads an existing approved project and prepares APIs, Firebase, two
-private state buckets and three narrowly federated identities. It does not create
-a project, associate billing, or own the existing project configuration. The
-operator needs project-level permissions for these resources. Import Firebase
-first if already enabled; confirm current billing without changing it. Use
-approved ADC/federation, never a downloaded service account key. Firebase enabling
-is irreversible; deleting the Terraform resource does not remove Firebase.
+approved. This root creates a dedicated project, associates its approved billing
+account, and prepares APIs, Firebase, two private state buckets and three narrowly
+federated identities. The project display name is `website-devcirrus`; the preferred
+project ID is also `website-devcirrus`, subject to global availability. It has not
+been reserved or created. Project ID, parent and billing inputs are explicit.
+
+The human operator needs Project Creator on the approved parent, Billing Account
+User on the approved billing account and project-level permissions for these
+resources. Supply exactly one organisation or folder parent. Use approved
+ADC/federation, never a downloaded service account key. Creation, billing and
+resource changes require explicit approval of the actual private plan, costs and
+rollback. CI does not create its own project or IAM access. Firebase enabling is
+irreversible; deleting the Terraform resource does not remove Firebase.
 
 Use Terraform 1.16.6 and the committed provider locks. Keep all command output,
 inputs, plans and initial state in a mode-0700 private directory outside Git:
