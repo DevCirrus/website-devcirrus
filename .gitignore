@@ -15,3 +15,5 @@ gha-creds-*.json
 private/
 reports/
 *.backup
+
+.firebaserc
