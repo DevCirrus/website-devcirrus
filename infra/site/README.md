@@ -3,8 +3,9 @@
 Run only after bootstrap and an explicit plan approval. This root owns one
 specific Hosting site, two domain associations, a DNS zone and explicitly
 adopted RRsets. It never owns Hosting content/releases, registrar NS/DS, billing,
-IAM or legacy sites. In an existing project, choose a separate site ID and
-inventory all existing sites before importing anything.
+IAM or legacy sites. Target the dedicated project from bootstrap outputs.
+Firebase may create a default site when enabling the project: inventory it and
+import it only if it is the approved DevCirrus site; do not create a second owner.
 
 Import existing resources that this root will own, with reviewed ownership:
 
@@ -30,4 +31,5 @@ even those outside Terraform management. Keep inputs and plans private.
 
 CI DNS Admin/Hosting Admin roles span the selected project and can affect other
 sites/zones. Inventory, approve this scope and evaluate narrower permissions
-before activating CI in a shared project. These grants are not site-only IAM.
+before activating CI. The dedicated project contains their scope; these grants
+are not site-only IAM.

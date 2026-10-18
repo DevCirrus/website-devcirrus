@@ -9,7 +9,7 @@ releases. Neither manages the other's resources.
 
 Before bootstrap, record the following in private storage:
 
-- Approved target GCP project ID and current billing status; authenticated
+- Approved dedicated GCP project ID, parent and billing account; authenticated
   read-only inventory of projects, APIs, Firebase sites, DNS zones and state.
 - Existing state/resource ownership. Import approved existing objects before
   planning; never run two Terraform states against one resource.
@@ -91,11 +91,13 @@ Human operators put complete approved site inputs in the private site bucket at
 Actions input. The plan validates project/site against environment variables.
 Bootstrap is never managed by the infrastructure workflow.
 
-The existing-project variant does not create a project, associate billing or
-own existing project settings. Inventory Firebase/APIs and import existing
-managed objects first. Product roles can affect other sites/zones in the project;
-review that scope and validate service usage/API Keys permissions with the real
-identity before enabling federation. Content has no DNS, IAM, billing or state
+The human bootstrap creates a dedicated project and associates only the approved
+billing account. The preferred project ID/display name is `website-devcirrus`;
+ID availability, parent and billing account require verification before approval.
+CI cannot create projects, associate billing or configure its own IAM. Inventory
+Firebase/APIs and import any approved existing managed objects first. Product
+roles span the dedicated project; validate service usage/API Keys permissions
+with the real identity before enabling federation. Content has no DNS, IAM, billing or state
 bucket grants in this configuration. Actual denial tests for PRs, forks, tags,
 other workflows/branches and cross-pipeline impersonation remain required at
 activation; mocks are not proof of real IAM isolation.

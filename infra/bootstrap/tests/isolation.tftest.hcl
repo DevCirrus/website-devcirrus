@@ -9,11 +9,17 @@ mock_provider "google" {
 mock_provider "google-beta" {}
 variables {
   project_id             = "devcirrus-test-only"
+  billing_account        = "000000-000000-000000"
+  org_id                 = "123456789012"
   bootstrap_state_bucket = "devcirrus-test-bootstrap"
   site_state_bucket      = "devcirrus-test-site"
 }
 run "identity_boundaries" {
   command = apply
+  assert {
+    condition     = google_project.website.name == "website-devcirrus" && google_project.website.org_id == "123456789012" && google_project.website.billing_account == "000000-000000-000000" && google_project.website.deletion_policy == "PREVENT" && !google_project.website.auto_create_network
+    error_message = "Bootstrap must create the dedicated project in the approved parent/billing account with deletion protection and no default network."
+  }
   assert {
     condition = alltrue([for k, p in google_iam_workload_identity_pool_provider.pipeline :
       strcontains(p.attribute_condition, "assertion.repository_id == '1424246574'") &&
@@ -41,4 +47,19 @@ run "identity_boundaries" {
     ])
     error_message = "CI must not receive broad administrative roles."
   }
+}
+
+run "reject_ambiguous_parent" {
+  command = plan
+  variables {
+    folder_id = "987654321098"
+  }
+  expect_failures = [google_project.website]
+}
+run "reject_missing_parent" {
+  command = plan
+  variables {
+    org_id = null
+  }
+  expect_failures = [google_project.website]
 }

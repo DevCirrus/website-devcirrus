@@ -20,8 +20,8 @@ Before requesting authorization, prepare a reviewable record containing:
    of the complete old/new zones, with every expected difference reviewed.
 5. Current official DNS, Hosting and GCS pricing, account-specific transfer quota,
    incremental monthly estimate, budget/alerts and expected retention overhead.
-   Earlier price research is not a fresh quote or a spending approval. In a
-   shared project, separate existing costs from this site's incremental costs.
+   Earlier price research is not a fresh quote or a spending approval. Include
+   the dedicated project's DNS/state costs even before traffic starts.
 6. Exact proposed operation for Pedro to authorize: resources first, DNS records
    next, NS/DS at registrar only when required. Record each approval once and
    execute/verify the authorized operation without asking the same approval again.

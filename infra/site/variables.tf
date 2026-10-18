@@ -1,6 +1,6 @@
 variable "project_id" {
   type        = string
-  description = "Existing approved project, provisioned/imported by human bootstrap."
+  description = "Dedicated project created by the approved human bootstrap."
 }
 variable "site_id" {
   type        = string
