@@ -55,7 +55,7 @@ resource "google_storage_bucket" "state" {
     condition {
       days_since_noncurrent_time = 30
       num_newer_versions         = 10
-      matches_prefix             = ["bootstrap/", "site/"]
+      matches_prefix             = ["bootstrap/", "site/", "bootstrap-recovery/"]
     }
   }
   dynamic "lifecycle_rule" {

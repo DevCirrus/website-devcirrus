@@ -1,0 +1,11 @@
+{
+  "name": "DevCirrus — disposable bootstrap",
+  "build": { "dockerfile": "Dockerfile", "context": ".." },
+  "remoteUser": "vscode",
+  "postCreateCommand": "python3 infra/bootstrap/bootstrap.py doctor",
+  "hostRequirements": { "cpus": 2, "memory": "4gb" },
+  "forwardPorts": [],
+  "customizations": {
+    "vscode": { "settings": { "terminal.integrated.scrollback": 1000 } }
+  }
+}
