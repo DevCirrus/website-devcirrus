@@ -236,7 +236,8 @@ não executar o `prepare` inicial contra um projeto já gerido.
 - [Flag access-token-file](https://cloud.google.com/sdk/gcloud/reference#--access-token-file)
 - [Backend GCS](https://developer.hashicorp.com/terraform/language/backend/gcs)
 
-Imagens oficiais/digests e código do backend GCS foram consultados em 2026-10-19.
+As referências das imagens oficiais/digests e o código do backend GCS foram
+verificados durante a preparação deste PR.
 Testes offline usam tokens fictícios e cloud simulada. Build da imagem/doctor não
 provam permissões cloud, disponibilidade de IDs, criação de recursos ou recuperação
 real; essas verificações pertencem à execução autorizada. Revalidar preços e

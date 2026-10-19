@@ -3,7 +3,7 @@
 
 Só prepare/doctor são locais. Os restantes comandos usam um access token humano
 curto, pedido sem eco e guardado apenas em /dev/shm. Não há login ADC, chaves JSON,
-refresh tokens, credenciais GitHub persistidas ou execução cloud automática.
+refresh tokens ou secrets GitHub/Codespaces; não executa cloud automaticamente.
 """
 import argparse
 from contextlib import contextmanager
@@ -157,6 +157,7 @@ class Bootstrap:
 
     def run(self, args, allowed=(0,)):
         result = subprocess.run(args, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        result.stdout = result.stdout.replace(self.env['GOOGLE_OAUTH_ACCESS_TOKEN'].encode(), b'[REDACTED]')
         with (self.work / 'operations.log').open('ab') as log:
             log.write(result.stdout)
         require(result.returncode in allowed, f'Comando falhou; consulte {self.work / "operations.log"}. Não publique o log.')
@@ -252,6 +253,7 @@ class Bootstrap:
         require(self.meta['stage'] in ['remote', 'planned', 'verified'] and (self.root / 'backend.tf').exists(), 'Migre o estado primeiro.')
         self.private_bucket()
         self.meta.pop('verified', None)
+        self.meta['stage'] = 'remote'
         self.save()
         raw = self.object(STATE_OBJECT, media=True)
         require(raw is not None, 'Estado GCS em falta.')
@@ -303,7 +305,7 @@ def restore(work, bucket, generation, env, token_file):
     result = subprocess.run(['gcloud', f'--access-token-file={token_file}', '--quiet', 'storage', 'cp',
                              f'gs://{bucket}/{RECOVERY_OBJECT}#{generation}', str(archive)], env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    (work / 'operations.log').write_bytes(result.stdout)
+    (work / 'operations.log').write_bytes(result.stdout.replace(env['GOOGLE_OAUTH_ACCESS_TOKEN'].encode(), b'[REDACTED]'))
     require(result.returncode == 0, 'Restore falhou; consulte o log privado. Nenhum apply foi executado.')
     unpack(archive, work)
     recovered = Bootstrap(work, env, token_file)

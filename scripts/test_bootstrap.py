@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -123,3 +124,18 @@ class CodespaceBootstrap(unittest.TestCase):
         meta = json.loads((self.work / 'workspace.json').read_text())
         self.assertNotIn('verified', meta)
         self.assertNotEqual(meta['stage'], 'verified')
+
+    def test_subprocess_output_never_writes_the_token_to_logs(self):
+        output = subprocess.CompletedProcess(['fake-cli'], 0, b'error mentioning FAKE-SHORT-TOKEN')
+        with patch.object(b.subprocess, 'run', return_value=output):
+            _, data = self.runner.run(['fake-cli'])
+        self.assertNotIn(b'FAKE-SHORT-TOKEN', data)
+        self.assertNotIn(b'FAKE-SHORT-TOKEN', (self.work / 'operations.log').read_bytes())
+
+    def test_failed_reverification_invalidates_previous_delete_marker(self):
+        self.runner.meta.update(stage='verified', verified={'old': True})
+        with self.assertRaises(RuntimeError):
+            self.verify_with_fake_cloud(2)
+        meta = json.loads((self.work / 'workspace.json').read_text())
+        self.assertNotIn('verified', meta)
+        self.assertEqual(meta['stage'], 'remote')
