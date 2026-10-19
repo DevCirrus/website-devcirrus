@@ -91,6 +91,12 @@ Human operators put complete approved site inputs in the private site bucket at
 Actions input. The plan validates project/site against environment variables.
 Bootstrap is never managed by the infrastructure workflow.
 
+Run the human bootstrap in the [disposable Codespace](../infra/bootstrap/README.md).
+Its guide covers the architecture, short-lived browser/Cloud Shell authentication,
+private workspace, exact-plan approval, GCS migration and a fresh-copy recovery
+check before deleting the Codespace. No persistent Google credentials are stored
+in the checkout, image or Codespaces secrets.
+
 The human bootstrap creates a dedicated project and associates only the approved
 billing account. The preferred project ID/display name is `website-devcirrus`;
 ID availability, parent and billing account require verification before approval.

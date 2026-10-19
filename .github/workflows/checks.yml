@@ -38,3 +38,19 @@ jobs:
       - run: python3 -m unittest discover -s scripts -p 'test_*.py' -v
       - run: node scripts/check-workflows.mjs
       - run: bash scripts/lint-workflows.sh
+  codespace-image:
+    name: codespace image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - name: Build pinned bootstrap image without secrets or cloud access
+        run: docker build --file .devcontainer/Dockerfile --tag devcirrus-bootstrap-check .
+      - name: Smoke test tools and documented entrypoint without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm --volume "$PWD:/workspaces/website-devcirrus:ro" --workdir /workspaces/website-devcirrus devcirrus-bootstrap-check python3 infra/bootstrap/bootstrap.py doctor
+          docker run --rm --volume "$PWD:/workspaces/website-devcirrus:ro" --workdir /workspaces/website-devcirrus devcirrus-bootstrap-check python3 infra/bootstrap/bootstrap.py --help

@@ -18,7 +18,7 @@ than committing an unverified project ID.
 See [operations and prerequisites](docs/operations.md). Blog, wiki and technology
 demonstrations are outside this release.
 
-Infrastructure roots: [human bootstrap](infra/bootstrap/README.md) and
+Infrastructure roots: [bootstrap num Codespace descartável — visão geral e passo a passo](infra/bootstrap/README.md) and
 [Hosting/DNS](infra/site/README.md). CI remains gated by activation variables
 until approved provisioning and environment protection are verified. After
 activation, content publishes automatically after merge; infrastructure needs a
